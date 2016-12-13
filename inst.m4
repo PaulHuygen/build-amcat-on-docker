@@ -47,7 +47,7 @@ m4_dnl
 m4_define(m4_ubuntuversion, `14.04')m4_dnl
 m4_define(m4_amcatversion, `3.4')m4_dnl
 m4_define(installdir, /usr/local/share)m4_dnl
-m4_define(m4_apt-key, `E084DAB9')m4_dnl
+m4_define(m4_apt_key, `E084DAB9')m4_dnl
 m4_define(m4_javabasename, `jre-8u111')m4_dnl
 m4_define(m4_javatarball, m4_javabasename`-linux-x64.tar.gz')m4_dnl
 m4_define(m4_elastic_version, 1.4.4)m4_dnl
@@ -64,6 +64,10 @@ m4_define(m4_amcat_db_name, `amcat')m4_dnl
 m4_define(m4_amcat_db_user, `amcat')m4_dnl
 m4_define(m4_amcat_db_password, `amcat')m4_dnl
 m4_define(m4_amcatsocket, `/usr/local/share')m4_dnl
+m4_define(m4_amcat_root, m4_amcatsocket`/amcat')m4_dnl
+m4_define(m4_amcat_remote_repo, `https://github.com/amcat/amcat.git')m4_dnl
+m4_define(m4_amcat_gitbranche, `release-3.4')m4_dnl
+m4_define(m4_amcat_root, m4_amcatsocket`/amcat')m4_dnl
 m4_define(m4_amcat_root, m4_amcatsocket`/amcat')m4_dnl
 m4_define(m4_uwsgi_logfile, `/var/log/amcat_uwsgi.log')m4_dnl
 m4_define(m4_celery_logfile, `/var/log/celery.log')m4_dnl

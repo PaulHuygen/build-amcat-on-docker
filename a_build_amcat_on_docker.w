@@ -4,6 +4,11 @@ m4_include(inst.m4)m4_dnl
 \usepackage{pdfswitch}
 \usepackage{figlatex}
 \usepackage{makeidx}
+\usepackage{a4wide}
+\usepackage{alltt}
+\usepackage{color}
+\usepackage{lmodern}
+\usepackage[british]{babel}
 \renewcommand{\indexname}{General index}
 \makeindex
 \newcommand{\thedoctitle}{m4_doctitle}
@@ -15,7 +20,74 @@ m4_include(inst.m4)m4_dnl
 \title{\thedoctitle}
 \author{\theauthor}
 \date{m4_docdate}
-m4_include(texinclusions.m4)m4_dnl
+%
+% Commands for frequently used constructions
+%
+\newcommand{\pdf}{\textsc{pdf}}
+\newcommand{\HTML}{\textsc{html}}
+\newcommand{\URI}{\textsc{uri}}
+%
+% PDF-specific settings
+%
+\ifpdf
+% \usepackage[pdftex]{graphicx}       %%% graphics for dvips
+% \usepackage[pdftex]{thumbpdf}      %%% thumbnails for ps2pdf
+% \usepackage[pdftex]{thumbpdf}      %%% thumbnails for pdflatex
+% \usepackage[pdftex,                %%% hyper-references for pdflatex
+% bookmarks=true,%                   %%% generate bookmarks ...
+% bookmarksnumbered=true,%           %%% ... with numbers
+% a4paper=true,%                     %%% that is our papersize.
+% hypertexnames=false,%              %%% needed for correct links to figures !!!
+% breaklinks=true,%                  %%% break links if exceeding a single line
+% linkbordercolor={0 0 1}]{hyperref} %%% blue frames around links
+% %                                  %%% pdfborder={0 0 1} is the
+% %                                  default
+% \hypersetup{
+%   pdfauthor   = {\theauthor},
+%   pdftitle    = {\thedoctitle},
+%   pdfsubject  = {web program},
+%  }
+ \renewcommand{\NWlink}[2]{\hyperlink{#1}{#2}}
+ \renewcommand{\NWtarget}[2]{\hypertarget{#1}{#2}}
+ \renewcommand{\NWsep}{$\diamond$\rule[-1\baselineskip]{0pt}{1\baselineskip}}
+\else
+%\usepackage[dvips]{graphicx}        %%% graphics for dvips
+%\usepackage[latex2html,             %%% hyper-references for ps2pdf
+%bookmarks=true,%                   %%% generate bookmarks ...
+%bookmarksnumbered=true,%           %%% ... with numbers
+%hypertexnames=false,%              %%% needed for correct links to figures !!!
+%breaklinks=true,%                  %%% breaks lines, but links are very small
+%linkbordercolor={0 0 1},%          %%% blue frames around links
+%pdfborder={0 0 112.0}]{hyperref}%  %%% border-width of frames 
+\usepackage{html}
+\renewcommand{\NWlink}[2]{\hyperlink{#1}{#2}}
+\renewcommand{\NWtarget}[2]{\hypertarget{#1}{#2}}
+\fi
+%
+% Settings
+%
+\raggedbottom
+\makeatletter
+\if@@oldtoc
+  \renewcommand\toc@@font[1]{\relax}
+\else
+  \renewcommand*\toc@@font[1]{%
+    \ifcase#1\relax
+    \chaptocfont
+    \or\slshape
+    \or\rmfamily
+    \fi}
+\fi
+\makeatother
+\newcommand{\chaptocfont}{\large\bfseries}
+
+\newcommand{\pdfpsinc}[2]{%
+\ifpdf
+  \input{#1}
+\else
+  \input{#2}
+\fi
+}
 \begin{document}
 \maketitle
 \begin{abstract}
@@ -63,7 +135,7 @@ The installation script installs/configures the following elements:
 \label{sec:dockerbuild}
 
 The set-up has been stolen from the
-\href{m4_django_uwsgi_nginx_repo}{\texttt{django-uwsgi-nginx} Github repo.
+\href{m4_django_uwsgi_nginx_repo}{\texttt{django-uwsgi-nginx}} Github repo.
 
 @o buildenv/Dockerfile @{@%
 FROM ubuntu:m4_ubuntuversion
@@ -75,7 +147,6 @@ MAINTAINER PaulHuygen
 @< copy the stuff that is needed @>
 @< run the installation script @>
 @< start supervisord in Dockerfile @>
-@< copy the installation script and run it @>
 
 @% RUN apt-get update && apt-get install -y \
 @% 	git \
@@ -118,6 +189,11 @@ MAINTAINER PaulHuygen
 
 \subsection{The installation script}
 \label{sec:installscript}
+
+@d run the installation script @{@%
+RUN /root/installationscript
+@| @}
+
 
 @o buildenv/installationscript @{@%
 #!/bin/bash
@@ -181,7 +257,7 @@ downloads packages. Supply the key.
 @d prepare ubuntu @{@%
 echo 'deb https://mirrors.cicku.me/CRAN/bin/linux/ubuntu trusty/' > /etc/apt/sources.list.d/r-cran-trusty.list
 echo 'deb https://cran.rstudio.com/bin/linux/ubuntu trusty/' >> /etc/apt/sources.list.d/r-cran-trusty.list
-apt-key adv --keyserver keyserver.ubuntu.com --recv-keys m4_apt-key
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys m4_apt_key
 apt-get update && apt-get -y upgrade 
 @| @}
 
@@ -445,6 +521,36 @@ pip install celery
 mv /root/amcat_celery /usr/local/bin/
 chmod 775 /usr/local/bin/amcat_celery
 @| @}
+
+
+\subsection{Amcat itself}
+\label{sec:Amcat}
+
+Download and compile Amcat. To compile amcat we need Bower, so we
+install that first.
+
+@d install/configure the elements @{@%
+npm install -g bower
+@| @}
+
+Download Amcat in \texttt{m4_amcatsocket} and compile:
+
+@d install/configure the elements @{@%
+cd m4_amcatsocket
+git clone -b m4_amcat_gitbranche m4_amcat_remote_repo
+cd m4_amcat_root
+pip install -r requirements.txt
+export PYTHONPATH=$PYTHONPATH:m4_amcat_root
+export AMCAT_ES_LEGACY_HASH=N
+echo "export PYTHONPATH=$PYTHONPATH:m4_amcat_root" >> /etc/profile.d/amcat
+echo 'export AMCAT_ES_LEGACY_HASH=N' >> /etc/profile.d/amcat
+bower --allow-root install
+python -m amcat.manage syncdb
+
+@| @}
+
+
+
 
 \subsection{Supervisord}
 \label{sec:supervisord}
@@ -834,7 +940,7 @@ cannot run executables on this system, but on my work-computer I
 can. Therefore, place the following script on a local directory.
 
 @d parameters in Makefile @{@%
-W2PDF=m4_nuwebbindir/w2pdf
+W2PDF=w2pdf
 @| @}
 
 @d directories to create @{m4_nuwebbindir @| @}
@@ -862,7 +968,7 @@ LATEXCOMPILER=!>\$3<!
 @| @}
 !>)m4_dnl
 
-m4_opencompilfil(<!m4_nuwebbindir/!>,<!w2pdf!>,<!pdflatex!>)m4_dnl
+m4_opencompilfil(<!./!>,<!w2pdf!>,<!pdflatex!>)m4_dnl
 
 @%@o w2pdf @{@%
 @%#!/bin/bash
